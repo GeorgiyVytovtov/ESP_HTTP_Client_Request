@@ -6,7 +6,7 @@
 #include "test_http.h"
 #include "test_parse.h"
 
-/*
+
 void app_main(void)
 {
     nvs_flash_init();
@@ -16,12 +16,12 @@ void app_main(void)
     xTaskCreate(vParseTask, "vParseTask", 1024*4, NULL, 5, NULL);
     xTaskCreate(vHttpRequestTask, "vHttpRequestTask", 1024*4, NULL, 5, NULL);
     xTaskCreate(vUartTxTask, "vUartTxTask", 1024*3, NULL, 5, NULL);
-}*/
-//for unit tests
+}
+/*//for unit tests
 void app_main(void)
 {
     nvs_flash_init();
     run_uart_tests();
     run_http_tests();
     run_parse_tests();
-}
+}*/
