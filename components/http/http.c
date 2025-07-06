@@ -9,6 +9,8 @@ static SemaphoreHandle_t http_request_semaphore;
 static EventGroupHandle_t wifi_event_group;
 static const char *TAG = "HTTP";
 
+void error_response(const char* msg);
+
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
@@ -55,6 +57,10 @@ esp_err_t client_event_handler(esp_http_client_event_handle_t event)
         ESP_LOGI(TAG, "End message data");
         xSemaphoreGive(http_request_semaphore);
         break;
+    case HTTP_EVENT_ERROR:
+        error_response("HTTP event error");
+        ESP_LOGE(TAG, "HTTP event error");
+        break;
     default:
         break;
     }
@@ -91,6 +97,18 @@ void wifi_init()
     xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
 }
 
+void error_response(const char* msg)
+{
+    ESP_LOGE(TAG, "%s", msg);
+
+    CommunicationData error_response = {0};
+    strncpy(error_response.buffer, msg, sizeof(error_response.buffer) - 1);
+    error_response.buffer[sizeof(error_response.buffer) - 1] = '\0';
+    error_response.len = strlen(error_response.buffer);
+    xQueueSend(uart_tx_msg_queue, &error_response, pdMS_TO_TICKS(100));
+}
+
+
 void http_get(const char *url)
 {
     esp_http_client_config_t config = {
@@ -104,11 +122,21 @@ void http_get(const char *url)
 
     if (err == ESP_OK)
     {
-        ESP_LOGI(TAG, "HTTP GET Status = %d", esp_http_client_get_status_code(client));
+        int status = esp_http_client_get_status_code(client);
+        ESP_LOGI(TAG, "HTTP GET Status = %d", status);
+
+        if (status >= 400)
+        {
+            error_response("HTTP GET returned error...");
+            ESP_LOGW(TAG, "HTTP GET returned error status code %d for URL: %s", status, url);
+            xSemaphoreGive(http_request_semaphore);
+        }
     }
     else
     {
+        error_response("HTTP GET Request failed...");
         ESP_LOGE(TAG, "HTTP GET Request failed: %s", esp_err_to_name(err));
+        xSemaphoreGive(http_request_semaphore);
     }
     esp_http_client_cleanup(client);
 }
@@ -131,11 +159,20 @@ void http_post(const char *url, const char *body)
 
     if (err == ESP_OK)
     {
-        ESP_LOGI(TAG, "HTTP POST Status = %d", esp_http_client_get_status_code(client));
+        int status = esp_http_client_get_status_code(client);
+        ESP_LOGI(TAG, "HTTP POST Status = %d", status);
+        if (status >= 400)
+        {
+            error_response("HTTP POST returned error...");
+            ESP_LOGW(TAG, "HTTP POST returned error status code %d for URL: %s", status, url);
+            xSemaphoreGive(http_request_semaphore);
+        }
     }
     else
     {
+        error_response("HTTP POST Request failed...");
         ESP_LOGE(TAG, "HTTP POST Request failed: %s", esp_err_to_name(err));
+        xSemaphoreGive(http_request_semaphore);
     }
     esp_http_client_cleanup(client);
 }
