@@ -2,12 +2,6 @@
 
 static const char *TAG = "PARSE";
 
-typedef struct
-{
-    HttpRequest httpRequest;
-    bool is_correct_parse;
-} ParseHttpRequest;
-
 ParseHttpRequest parse_message(const char *data, uint16_t size)
 {
     ParseHttpRequest httpRequest = {0};

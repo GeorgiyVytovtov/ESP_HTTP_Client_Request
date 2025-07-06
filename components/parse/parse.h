@@ -13,6 +13,14 @@ typedef struct{
     char buffer[SIZE_BUFF_CHENK];//128
 }CommunicationData;
 
+typedef struct
+{
+    HttpRequest httpRequest;
+    bool is_correct_parse;
+} ParseHttpRequest;
+
+ParseHttpRequest parse_message(const char *data, uint16_t size);
+
 void vParseTask(void* pvParameters);
 
 #endif /* __PARSE_H */
