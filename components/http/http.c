@@ -44,6 +44,11 @@ esp_err_t client_event_handler(esp_http_client_event_handle_t event)
 
             memcpy(output.buffer, event->data, copy_len);
             output.len = copy_len;
+
+            if (xQueueSend(uart_tx_msg_queue, &output, pdMS_TO_TICKS(100)) != pdPASS)
+            {
+                ESP_LOGW(TAG, "Queue full — data chunk lost");
+            }
         }
         break;
     case HTTP_EVENT_ON_FINISH:

@@ -11,4 +11,5 @@ void app_main(void)
     xTaskCreate(vUartRxEventTask, "vUartRxEventTask", 1024*4, NULL, 5, NULL);
     xTaskCreate(vParseTask, "vParseTask", 1024*4, NULL, 5, NULL);
     xTaskCreate(vHttpRequestTask, "vHttpRequestTask", 1024*4, NULL, 5, NULL);
+    xTaskCreate(vUartTxTask, "vUartTxTask", 1024*3, NULL, 5, NULL);
 }

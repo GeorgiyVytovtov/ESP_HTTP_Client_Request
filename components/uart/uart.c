@@ -54,3 +54,17 @@ void vUartRxEventTask(void* pvParameters){
         }
     }
 }
+
+void vUartTxTask(void* pvParameters)
+{
+    CommunicationData output;
+    uart_tx_msg_queue = xQueueCreate(10, sizeof(CommunicationData));
+    while(1)
+    {
+        if(xQueueReceive(uart_tx_msg_queue, &output, portMAX_DELAY))
+        {
+            memcpy(uart_tx_buffer, output.buffer, output.len);
+            uart_write_bytes(uart_num, uart_tx_buffer, output.len);
+        }
+    }
+}
