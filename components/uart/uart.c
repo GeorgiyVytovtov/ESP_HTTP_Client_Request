@@ -38,7 +38,6 @@ void vUartRxEventTask(void* pvParameters){
             {
                 CommunicationData data;
                 uint32_t len = uart_read_bytes(uart_num, uart_rx_buffer, rx_data_event.size, portMAX_DELAY);
-                
                 if (len > UART_RX_BUFFER) {
                     len = UART_RX_BUFFER;  
                 }
@@ -50,7 +49,7 @@ void vUartRxEventTask(void* pvParameters){
                     data.buffer[len] = '\0'; 
                 }
 
-                xQueueSend(uart_rx_queue, &data, NULL);
+                xQueueSend(uart_rx_msg_queue, &data, NULL);
             }
         }
     }
