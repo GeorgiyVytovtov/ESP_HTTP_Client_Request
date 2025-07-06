@@ -79,7 +79,7 @@ void vParseTask(void *pvParameters)
             ESP_LOGI(TAG,"pars");
             if (parse_http_request.is_correct_parse)
             {
-                // xQueueSend(http_request_queue, &parse_http_request.httpRequest, NULL);
+                xQueueSend(http_request_queue, &parse_http_request.httpRequest, NULL);
                 ESP_LOGI(TAG, "url: %s", parse_http_request.httpRequest.url);
                 ESP_LOGI(TAG, "typeHttpRequest: %s", parse_http_request.httpRequest.typeHttpRequest);
                 ESP_LOGI(TAG, "body: %s", parse_http_request.httpRequest.body);

@@ -1,3 +1,5 @@
+password.h
+
 build/
 sdkconfig
 sdkconfig.old
