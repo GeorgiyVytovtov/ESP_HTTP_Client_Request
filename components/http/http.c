@@ -1,10 +1,13 @@
 #include "http.h"
+#include "parse.h"
 
 QueueHandle_t http_request_queue = NULL;
 
 #define WIFI_CONNECTED_BIT BIT0
 static EventGroupHandle_t wifi_event_group;
 static const char *TAG = "HTTP";
+
+static bool is_start_request = false;
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -31,11 +34,21 @@ esp_err_t client_event_handler(esp_http_client_event_handle_t event)
     case HTTP_EVENT_ON_DATA:
         if (!esp_http_client_is_chunked_response(event->client))
         {
-            
+            CommunicationData output;
+            uint32_t copy_len = event->data_len;
+            if (copy_len > sizeof(output.buffer))
+            {
+                ESP_LOGI(TAG, "Overflow %d", event->data_len);
+                copy_len = sizeof(output.buffer) - 1;
+            }
+
+            memcpy(output.buffer, event->data, copy_len);
+            output.len = copy_len;
         }
         break;
     case HTTP_EVENT_ON_FINISH:
         ESP_LOGI(TAG, "End message data");
+        is_start_request = false;
         break;
     default:
         break;
@@ -122,3 +135,25 @@ void http_post(const char *url, const char *body)
     esp_http_client_cleanup(client);
 }
 
+void vHttpRequestTask(void *pvParameters)
+{
+    HttpRequest httpRequest;
+    while (1)
+    {
+        if (xQueueReceive(http_request_queue, &httpRequest, portMAX_DELAY) && !is_start_request)
+        {
+            ESP_LOGI(TAG, "url: %s", httpRequest.url);
+            ESP_LOGI(TAG, "typeHttpRequest: %s", httpRequest.typeHttpRequest);
+            ESP_LOGI(TAG, "body: %s", httpRequest.body);
+            is_start_request = true;
+            if (strcmp("GET", httpRequest.typeHttpRequest) == 0)
+            {
+                http_get(httpRequest.url);
+            }
+            else if (strcmp("POST", httpRequest.typeHttpRequest) == 0)
+            {
+                http_post(httpRequest.url, httpRequest.body);
+            }
+        }
+    }
+}

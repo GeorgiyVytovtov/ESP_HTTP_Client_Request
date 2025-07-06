@@ -10,9 +10,5 @@ void app_main(void)
     wifi_init();
     xTaskCreate(vUartRxEventTask, "vUartRxEventTask", 1024*4, NULL, 5, NULL);
     xTaskCreate(vParseTask, "vParseTask", 1024*4, NULL, 5, NULL);
-    while (1)
-    {
-        vTaskDelay( 500 / portTICK_PERIOD_MS);
-    }
-    
+    xTaskCreate(vHttpRequestTask, "vHttpRequestTask", 1024*4, NULL, 5, NULL);
 }
