@@ -3,11 +3,11 @@
 
 QueueHandle_t http_request_queue = NULL;
 
+static SemaphoreHandle_t http_request_semaphore;
+
 #define WIFI_CONNECTED_BIT BIT0
 static EventGroupHandle_t wifi_event_group;
 static const char *TAG = "HTTP";
-
-static bool is_start_request = false;
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -53,7 +53,7 @@ esp_err_t client_event_handler(esp_http_client_event_handle_t event)
         break;
     case HTTP_EVENT_ON_FINISH:
         ESP_LOGI(TAG, "End message data");
-        is_start_request = false;
+        xSemaphoreGive(http_request_semaphore);
         break;
     default:
         break;
@@ -143,21 +143,25 @@ void http_post(const char *url, const char *body)
 void vHttpRequestTask(void *pvParameters)
 {
     HttpRequest httpRequest;
+    http_request_semaphore = xSemaphoreCreateBinary();
+    xSemaphoreGive(http_request_semaphore);
     while (1)
     {
-        if (xQueueReceive(http_request_queue, &httpRequest, portMAX_DELAY) && !is_start_request)
+        if (xQueueReceive(http_request_queue, &httpRequest, portMAX_DELAY))
         {
-            ESP_LOGI(TAG, "url: %s", httpRequest.url);
-            ESP_LOGI(TAG, "typeHttpRequest: %s", httpRequest.typeHttpRequest);
-            ESP_LOGI(TAG, "body: %s", httpRequest.body);
-            is_start_request = true;
-            if (strcmp("GET", httpRequest.typeHttpRequest) == 0)
+            if (xSemaphoreTake(http_request_semaphore, 0) == pdTRUE)
             {
-                http_get(httpRequest.url);
-            }
-            else if (strcmp("POST", httpRequest.typeHttpRequest) == 0)
-            {
-                http_post(httpRequest.url, httpRequest.body);
+                ESP_LOGI(TAG, "url: %s", httpRequest.url);
+                ESP_LOGI(TAG, "typeHttpRequest: %s", httpRequest.typeHttpRequest);
+                ESP_LOGI(TAG, "body: %s", httpRequest.body);
+                if (strcmp("GET", httpRequest.typeHttpRequest) == 0)
+                {
+                    http_get(httpRequest.url);
+                }
+                else if (strcmp("POST", httpRequest.typeHttpRequest) == 0)
+                {
+                    http_post(httpRequest.url, httpRequest.body);
+                }
             }
         }
     }
