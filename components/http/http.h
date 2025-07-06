@@ -10,7 +10,7 @@
 #include "password.h"
 
 typedef struct{
-    char typeHttpRequest[128];
+    char typeHttpRequest[16];
     char url[128];
     char body[128];
 }HttpRequest;
