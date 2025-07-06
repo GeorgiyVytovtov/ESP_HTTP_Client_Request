@@ -5,3 +5,4 @@
 
 extern QueueHandle_t uart_rx_msg_queue;
 extern QueueHandle_t uart_tx_msg_queue;
+extern QueueHandle_t http_request_queue;
