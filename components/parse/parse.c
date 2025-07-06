@@ -6,7 +6,7 @@ ParseHttpRequest parse_message(const char *data, uint16_t size)
 {
     ParseHttpRequest httpRequest = {0};
 
-    if (size > 5 && strncmp(data, "http", 4) == 0)
+    if (size > 5 && strncmp(data, "http ", 5) == 0)
     {
         const char *ptr_start_request_type = data + 5;
         const char *ptr_end_request_type = strchr(ptr_start_request_type, ' ');
