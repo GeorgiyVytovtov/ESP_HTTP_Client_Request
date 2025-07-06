@@ -13,6 +13,7 @@ ParseHttpRequest parse_message(const char *data, uint16_t size)
         if (!ptr_end_request_type)
         {
             ESP_LOGI(TAG, "Error: haven't completed correct input data");
+            strcpy(httpRequest.error_msg, "Error: haven't completed correct input data\0");
             return httpRequest;
         }
 
@@ -20,6 +21,7 @@ ParseHttpRequest parse_message(const char *data, uint16_t size)
         if (type_request_len >= sizeof(httpRequest.httpRequest.typeHttpRequest))
         {
             ESP_LOGI(TAG, "Error: request type too long");
+            strcpy(httpRequest.error_msg, "Error: request type too long\0");
             return httpRequest;
         }
         strncpy(httpRequest.httpRequest.typeHttpRequest, ptr_start_request_type, type_request_len);
@@ -40,7 +42,7 @@ ParseHttpRequest parse_message(const char *data, uint16_t size)
         if (url_len >= sizeof(httpRequest.httpRequest.url))
         {
             ESP_LOGI(TAG, "Error: so long url");
-            httpRequest.is_correct_parse = false;
+            strcpy(httpRequest.error_msg, "Error: so long url\0");
             return httpRequest;
         }
         strncpy(httpRequest.httpRequest.url, ptr_start_url, url_len);
@@ -51,11 +53,16 @@ ParseHttpRequest parse_message(const char *data, uint16_t size)
         if (body_len >= sizeof(httpRequest.httpRequest.body))
         {
             ESP_LOGI(TAG, "Error: so long body");
-            httpRequest.is_correct_parse = false;
+            strcpy(httpRequest.error_msg, "Error: so long body\0");
             return httpRequest;
         }
         strncpy(httpRequest.httpRequest.body, ptr_start_body, body_len);
         httpRequest.httpRequest.body[body_len] = '\0';
+    }
+    else{
+        ESP_LOGI(TAG, "Error: haven't correct input data");
+        strcpy(httpRequest.error_msg, "Error: haven't completed correct input data\0");
+        return httpRequest;
     }
     httpRequest.is_correct_parse = true;
     return httpRequest;
@@ -73,6 +80,12 @@ void vParseTask(void *pvParameters)
             if (parse_http_request.is_correct_parse)
             {
                 xQueueSend(http_request_queue, &parse_http_request.httpRequest, NULL);
+            }
+            else{
+                CommunicationData error_response;
+                strcpy(error_response.buffer, parse_http_request.error_msg);
+                error_response.len = strchr(parse_http_request.error_msg, '\0') - parse_http_request.error_msg;
+                xQueueSend(uart_tx_msg_queue, &error_response, pdMS_TO_TICKS(100));
             }
         }
     }

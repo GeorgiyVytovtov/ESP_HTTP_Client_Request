@@ -16,6 +16,7 @@ typedef struct{
 typedef struct
 {
     HttpRequest httpRequest;
+    char error_msg[128];
     bool is_correct_parse;
 } ParseHttpRequest;
 
