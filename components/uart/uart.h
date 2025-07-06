@@ -3,6 +3,7 @@
 
 #include <driver/uart.h>
 #include "shearch_component.h"
+#include "parse.h"
 
 #define UART_RX_PIN     16
 #define UART_TX_PIN     17
