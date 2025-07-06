@@ -5,4 +5,6 @@
 cmake_minimum_required(VERSION 3.5)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+
+set(EXTRA_COMPONENT_DIRS tests)  # Добавляем твою папку с тестами
 project(ESP_HTTP_Request)
