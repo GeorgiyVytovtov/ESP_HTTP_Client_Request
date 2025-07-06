@@ -33,14 +33,14 @@ ParseHttpRequest parse_message(const char *data, uint16_t size)
 
         const char *ptr_start_url = ptr_end_request_type + 1;
         const char *ptr_end_url = strchr(ptr_start_url, ' ');
-        /*
+        
         if (!ptr_end_url){
             size_t url_len = (data+size) - ptr_start_url;
             strncpy(httpRequest.httpRequest.url, ptr_start_url, url_len);
             httpRequest.httpRequest.url[url_len] = '\0';
             httpRequest.is_correct_parse = true;
             return httpRequest;
-        }*/
+        }
 
         size_t url_len = ptr_end_url - ptr_start_url; //!
         if (url_len >= sizeof(httpRequest.httpRequest.url))
