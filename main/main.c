@@ -3,6 +3,7 @@
 #include "parse.h"
 #include "http.h"
 #include "test_uart.h"
+#include "test_http.h"
 
 /*
 void app_main(void)
@@ -18,5 +19,7 @@ void app_main(void)
 
 void app_main(void)
 {
-    uart_tests();
+    nvs_flash_init();
+    run_uart_tests();
+    run_http_tests();
 }

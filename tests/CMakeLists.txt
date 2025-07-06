@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS "test_uart.c"
+    SRCS "test_http.c" "test_uart.c"
     INCLUDE_DIRS "."
-    REQUIRES uart unity
+    REQUIRES uart unity  http parse
 )
